@@ -40,15 +40,15 @@ class NTMHeadBase(nn.Module):
     def is_read_head(self):
         return NotImplementedError
 
-    def _address_memory(self, k, β, g, s, γ, w_prev):
+    def _address_memory(self, k, beta, g, s, gamma, w_prev):
         # Handle Activations
         k = k.clone()
-        β = F.softplus(β)
+        beta = F.softplus(beta)
         g = F.sigmoid(g)
         s = F.softmax(s, dim=1)
-        γ = 1 + F.softplus(γ)
+        gamma = 1 + F.softplus(gamma)
 
-        w = self.memory.address(k, β, g, s, γ, w_prev)
+        w = self.memory.address(k, beta, g, s, gamma, w_prev)
 
         return w
 
@@ -57,7 +57,7 @@ class NTMReadHead(NTMHeadBase):
     def __init__(self, memory, controller_size):
         super(NTMReadHead, self).__init__(memory, controller_size)
 
-        # Corresponding to k, β, g, s, γ sizes from the paper
+        # Corresponding to k, beta, g, s, gamma sizes from the paper
         self.read_lengths = [self.M, 1, 1, 3, 1]
         self.fc_read = nn.Linear(controller_size, sum(self.read_lengths))
         self.reset_parameters()
@@ -81,10 +81,10 @@ class NTMReadHead(NTMHeadBase):
         :param w_prev: previous step state
         """
         o = self.fc_read(embeddings)
-        k, β, g, s, γ = _split_cols(o, self.read_lengths)
+        k, beta, g, s, gamma = _split_cols(o, self.read_lengths)
 
         # Read from memory
-        w = self._address_memory(k, β, g, s, γ, w_prev)
+        w = self._address_memory(k, beta, g, s, gamma, w_prev)
         r = self.memory.read(w)
 
         return r, w
@@ -94,7 +94,7 @@ class NTMWriteHead(NTMHeadBase):
     def __init__(self, memory, controller_size):
         super(NTMWriteHead, self).__init__(memory, controller_size)
 
-        # Corresponding to k, β, g, s, γ, e, a sizes from the paper
+        # Corresponding to k, beta, g, s, gamma, e, a sizes from the paper
         self.write_lengths = [self.M, 1, 1, 3, 1, self.M, self.M]
         self.fc_write = nn.Linear(controller_size, sum(self.write_lengths))
         self.reset_parameters()
@@ -117,13 +117,13 @@ class NTMWriteHead(NTMHeadBase):
         :param w_prev: previous step state
         """
         o = self.fc_write(embeddings)
-        k, β, g, s, γ, e, a = _split_cols(o, self.write_lengths)
+        k, beta, g, s, gamma, e, a = _split_cols(o, self.write_lengths)
 
         # e should be in [0, 1]
         e = F.sigmoid(e)
 
         # Write to memory
-        w = self._address_memory(k, β, g, s, γ, w_prev)
+        w = self._address_memory(k, beta, g, s, gamma, w_prev)
         self.memory.write(w, e, a)
 
         return w
