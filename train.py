@@ -72,15 +72,15 @@ def save_checkpoint(net, name, args, batch_num, losses, costs, seq_lengths):
     LOGGER.info("Saving model checkpoint to: '%s'", model_fname)
     torch.save(net.state_dict(), model_fname)
 
-    # Save the training history
-    train_fname = basename + ".json"
-    LOGGER.info("Saving model training history to '%s'", train_fname)
-    content = {
-        "loss": [loss.data for loss in losses],
-        "cost": [cost.data for cost in costs],
-        "seq_lengths": seq_lengths
-    }
-    open(train_fname, 'wt').write(json.dumps(content))
+    # # Save the training history
+    # train_fname = basename + ".json"
+    # LOGGER.info("Saving model training history to '%s'", train_fname)
+    # content = {
+    #     "loss": [loss.data for loss in losses],
+    #     "cost": [cost.data for cost in costs],
+    #     "seq_lengths": seq_lengths
+    # }
+    # open(train_fname, 'wt').write(json.dumps(content))
 
 
 def clip_grads(net):
