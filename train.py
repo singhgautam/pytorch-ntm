@@ -53,15 +53,15 @@ def init_seed(seed=None):
 
 def progress_clean():
     """Clean the progress bar."""
-    print("\r{}".format(" " * 80), end='\r')
+    print "\r{}".format(" " * 80)+"\r"
 
 
 def progress_bar(batch_num, report_interval, last_loss):
     """Prints the progress until the next report."""
     progress = (((batch_num-1) % report_interval) + 1) / report_interval
     fill = int(progress * 40)
-    print("\r[{}{}]: {} (Loss: {:.4f})".format(
-        "=" * fill, " " * (40 - fill), batch_num, last_loss), end='')
+    print "\r[{}{}]: {} (Loss: {:.4f})".format(
+        "=" * fill, " " * (40 - fill), batch_num, last_loss)
 
 
 def save_checkpoint(net, name, args, batch_num, losses, costs, seq_lengths):
