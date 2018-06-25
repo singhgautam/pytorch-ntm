@@ -76,8 +76,8 @@ def save_checkpoint(net, name, args, batch_num, losses, costs, seq_lengths):
     train_fname = basename + ".json"
     LOGGER.info("Saving model training history to '%s'", train_fname)
     content = {
-        "loss": losses,
-        "cost": costs,
+        "loss": losses.data.numpy().tolist(),
+        "cost": costs.data.numpy().tolist(),
         "seq_lengths": seq_lengths
     }
     open(train_fname, 'wt').write(json.dumps(content))
