@@ -58,31 +58,31 @@ class NTMMemory(nn.Module):
         add = torch.matmul(w.unsqueeze(-1), a.unsqueeze(1))
         self.memory = self.prev_mem * (1 - erase) + add
 
-    def address(self, k, β, g, s, γ, w_prev):
+    def address(self, k, beta, g, s, gamma, w_prev):
         """NTM Addressing (according to section 3.3).
 
         Returns a softmax weighting over the rows of the memory matrix.
 
         :param k: The key vector.
-        :param β: The key strength (focus).
+        :param beta: The key strength (focus).
         :param g: Scalar interpolation gate (with previous weighting).
         :param s: Shift weighting.
-        :param γ: Sharpen weighting scalar.
+        :param gamma: Sharpen weighting scalar.
         :param w_prev: The weighting produced in the previous time step.
         """
         # Content focus
-        wc = self._similarity(k, β)
+        wc = self._similarity(k, beta)
 
         # Location focus
         wg = self._interpolate(w_prev, wc, g)
-        ŵ = self._shift(wg, s)
-        w = self._sharpen(ŵ, γ)
+        w_hat = self._shift(wg, s)
+        w = self._sharpen(w_hat, gamma)
 
         return w
 
-    def _similarity(self, k, β):
+    def _similarity(self, k, beta):
         k = k.view(self.batch_size, 1, -1)
-        w = F.softmax(β * F.cosine_similarity(self.memory + 1e-16, k + 1e-16, dim=-1), dim=1)
+        w = F.softmax(beta * F.cosine_similarity(self.memory + 1e-16, k + 1e-16, dim=-1), dim=1)
         return w
 
     def _interpolate(self, w_prev, wc, g):
@@ -94,7 +94,7 @@ class NTMMemory(nn.Module):
             result[b] = _convolve(wg[b], s[b])
         return result
 
-    def _sharpen(self, ŵ, γ):
-        w = ŵ ** γ
+    def _sharpen(self, w_hat, gamma):
+        w = w_hat ** gamma
         w = torch.div(w, torch.sum(w, dim=1).view(-1, 1) + 1e-16)
         return w
